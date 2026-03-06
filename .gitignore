@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environment
+venv/
+env/
+.venv/
+
+# Environment variables — never commit secrets
+.env
+
+# Built artifacts — large binary files, regenerated on first run
+data/artifacts/
+data/metadata/
+
+# Logs
+logs/
+
+# Analysis outputs
+analysis/results/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# WSL / OS
+.DS_Store
+Thumbs.db
+*~
+
+# IDEs
+.vscode/
+.idea/
+
+# Model cache (sentence-transformers downloads here)
+~/.cache/

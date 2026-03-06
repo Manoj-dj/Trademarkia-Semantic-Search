@@ -1,0 +1,32 @@
+# Core API
+fastapi==0.111.1
+uvicorn[standard]==0.30.1
+
+# Configuration
+pydantic==2.7.4
+pydantic-settings==2.3.4
+python-dotenv==1.0.1
+
+# Embedding model
+sentence-transformers==2.7.0
+
+# Vector search
+# NOTE: faiss-cpu is NOT compatible with numpy>=2.0.0
+# Pinning numpy<2.0 is mandatory to prevent ImportError at runtime.
+faiss-cpu==1.7.4
+numpy==1.26.4
+
+# Clustering and dimensionality reduction
+scikit-learn==1.5.2
+
+# Analysis and visualization (required for analysis/ scripts)
+umap-learn==0.5.6
+matplotlib==3.9.2
+seaborn==0.13.2
+pandas==2.2.2
+
+# PyTorch (CPU-only for sentence-transformers)
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.3.1
+torchvision==0.18.1
+torchaudio==2.3.1
