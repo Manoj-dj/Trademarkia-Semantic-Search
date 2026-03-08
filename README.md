@@ -172,7 +172,7 @@ cluster because MiniLM embeds them near-identically).
 **BIC Curve:**
 
 
-analysis/results/bic_curve.png
+![BIC Curve Analysis](analysis/results/bic_curve.png)
 
 
 The curve shows a clean global minimum at K=7 with monotonic rise afterward — strong
@@ -195,7 +195,7 @@ Cluster 6 (space/science):  0.02
 **UMAP Visualization:**
 
 
-analysis/results/umap_clusters.png
+![UMAP Cluster Projection](analysis/results/umap_clusters.png)
 
 
 Cluster 0 (blue) is tightly isolated in the bottom-left — a highly distinct topic domain
@@ -412,12 +412,6 @@ docker run -p 8000:8000 --env-file .env trademarkia-semantic-search
 > If `data/artifacts/` already contains built artifacts, include them before building
 > the Docker image. The container will skip the 40-minute pipeline and start in ~30s.
 
-### Pull from Docker Hub
-
-```bash
-docker pull manojdj/trademarkia-semantic-search:latest
-docker run -p 8000:8000 manojdj/trademarkia-semantic-search:latest
-```
 
 ---
 
@@ -466,7 +460,5 @@ Outputs are saved to `analysis/results/`.
 | Cache threshold | Adaptive per-cluster | Calibrated to local semantic density of each cluster |
 | API pattern | FastAPI lifespan + `app.state` | Artifacts loaded once, never per-request |
 | Logging | Rotating file handler | Production-grade, persistent across restarts |
-```
-
 
 
