@@ -12,9 +12,8 @@ principles, and a FastAPI service with full Swagger UI support.
 ## Architecture Overview
 
 
-```
-[Place your architecture diagram image here]
-```
+![Architecture Diagram](ArchiTecture Diagram.png)
+
 
 ### Two-Stage Design
 
@@ -460,5 +459,6 @@ Outputs are saved to `analysis/results/`.
 | Cache threshold | Adaptive per-cluster | Calibrated to local semantic density of each cluster |
 | API pattern | FastAPI lifespan + `app.state` | Artifacts loaded once, never per-request |
 | Logging | Rotating file handler | Production-grade, persistent across restarts |
+
 
 
