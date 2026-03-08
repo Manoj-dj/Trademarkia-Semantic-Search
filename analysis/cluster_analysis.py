@@ -206,6 +206,103 @@ def cluster_top_documents() -> None:
     out_path = RESULTS_DIR / "cluster_top_docs.csv"
     df.to_csv(out_path, index=False)
     logger.info("Cluster top documents saved | path=%s", out_path)
+    
+
+def plot_cluster_threshold_distribution() -> None:
+    """
+    For each cluster, plot the intra-cluster pairwise cosine similarity
+    histogram with a vertical line at the adaptive threshold.
+
+    This is the visual evidence justifying why each cluster gets a different
+    threshold — the sceptical reviewer can see directly that dense clusters
+    have a higher mean similarity distribution than sparse ones.
+    """
+    logger.info("Generating adaptive threshold distribution plots")
+
+    from app.pipeline.adaptive_threshold import (
+        compute_per_cluster_thresholds,
+        _MAX_SAMPLE_PER_CLUSTER,
+    )
+
+    embeddings = np.load(str(DOC_EMBEDDINGS_PATH))
+    membership_matrix = np.load(str(CLUSTER_MEMBERSHIP_PATH))
+    dominant_clusters = np.argmax(membership_matrix, axis=1)
+    n_clusters = membership_matrix.shape[1]
+
+    # Recompute thresholds to get per-cluster stats for plotting
+    thresholds = compute_per_cluster_thresholds(embeddings, membership_matrix)
+
+    records = []
+    fig, axes = plt.subplots(
+        nrows=int(np.ceil(n_clusters / 2)),
+        ncols=2,
+        figsize=(14, 4 * int(np.ceil(n_clusters / 2)))
+    )
+    axes_flat = axes.flatten()
+
+    for k in range(n_clusters):
+        member_indices = np.where(dominant_clusters == k)[0]
+        n_members = len(member_indices)
+        ax = axes_flat[k]
+
+        if n_members < 2:
+            ax.set_title(f"Cluster {k} (insufficient data)")
+            ax.axis("off")
+            records.append({
+                "cluster_id": k, "n_docs": n_members,
+                "mean_sim": None, "std_sim": None,
+                "adaptive_threshold": thresholds.get(k, 0.75)
+            })
+            continue
+
+        if n_members > _MAX_SAMPLE_PER_CLUSTER:
+            rng = np.random.default_rng(seed=42)
+            sample_idx = rng.choice(n_members, _MAX_SAMPLE_PER_CLUSTER, replace=False)
+            member_indices = member_indices[sample_idx]
+
+        cluster_embs = embeddings[member_indices]
+        sim_matrix = cluster_embs @ cluster_embs.T
+        upper_tri = np.triu_indices(len(cluster_embs), k=1)
+        pairwise_sims = sim_matrix[upper_tri]
+
+        mean_sim = float(np.mean(pairwise_sims))
+        std_sim = float(np.std(pairwise_sims))
+        adaptive_theta = thresholds.get(k, 0.75)
+
+        ax.hist(pairwise_sims, bins=40, color="steelblue", alpha=0.7, edgecolor="none")
+        ax.axvline(x=adaptive_theta, color="crimson", linestyle="--", linewidth=1.5,
+                   label=f"Adaptive theta={adaptive_theta:.3f}")
+        ax.axvline(x=mean_sim, color="orange", linestyle=":", linewidth=1.2,
+                   label=f"Mean={mean_sim:.3f}")
+        ax.set_title(f"Cluster {k} | n={n_members} | theta={adaptive_theta:.3f}")
+        ax.set_xlabel("Pairwise Cosine Similarity")
+        ax.set_ylabel("Count")
+        ax.legend(fontsize=7)
+
+        records.append({
+            "cluster_id": k,
+            "n_docs": n_members,
+            "mean_sim": round(mean_sim, 4),
+            "std_sim": round(std_sim, 4),
+            "adaptive_threshold": adaptive_theta,
+        })
+
+    # Hide unused subplot axes
+    for i in range(n_clusters, len(axes_flat)):
+        axes_flat[i].axis("off")
+
+    plt.suptitle("Per-Cluster Intra-Similarity Distribution and Adaptive Threshold", y=1.01)
+    plt.tight_layout()
+    plot_path = RESULTS_DIR / "adaptive_thresholds.png"
+    plt.savefig(plot_path, dpi=150, bbox_inches="tight")
+    plt.close()
+    logger.info("Adaptive threshold plot saved | path=%s", plot_path)
+
+    df = pd.DataFrame(records)
+    csv_path = RESULTS_DIR / "adaptive_thresholds.csv"
+    df.to_csv(csv_path, index=False)
+    logger.info("Adaptive thresholds CSV saved | path=%s", csv_path)
+
 
 
 if __name__ == "__main__":
@@ -214,4 +311,5 @@ if __name__ == "__main__":
     plot_umap_clusters()
     analyze_boundary_documents()
     cluster_top_documents()
+    plot_cluster_threshold_distribution()   # NEW
     logger.info("Cluster analysis complete | results in %s", RESULTS_DIR)
